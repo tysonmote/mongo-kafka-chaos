@@ -32,13 +32,13 @@ def parse_index(msg):
 def main():
     consumer = KafkaConsumer(
         "chaos.events",
-         bootstrap_servers=["kafka:9092"],
+         bootstrap_servers=["kafka1:9092", "kafka2:9092", "kafka3:9092"],
          group_id="consumer-0",
          auto_commit_interval_ms=1000,
          value_deserializer=lambda b: orjson.loads(b.decode("utf-8"))
      )
 
-    rate = RateTracker(label="Events consumed", interval=100000)
+    rate = RateTracker(label="Events consumed")
 
     seen = IndexSet()
     prev = None

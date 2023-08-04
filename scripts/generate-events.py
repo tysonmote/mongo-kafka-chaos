@@ -16,7 +16,7 @@ def main():
     except OperationFailure:
         print("Index already exists", flush=True)
 
-    rate = RateTracker(label="Events generated", interval=100000)
+    rate = RateTracker(label="Events generated")
     i = 0
 
     print("Generating events...", flush=True)

@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
-default_services="mongo1,mongo2,mongo3,kafka,zookeeper,connect"
+default_services="mongo1,mongo2,mongo3,kafka1,kafka2,kafka3,connect"
 default_signal="SIGKILL"
-default_interval=60
+default_interval=15
 
 # parse arguments
 services="$default_services"

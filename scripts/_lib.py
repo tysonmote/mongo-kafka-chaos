@@ -30,31 +30,34 @@ class IndexSet:
 class RateTracker:
     """
     Tracks the total count and recent rate of ticks over time, printing a
-    message every interval.
+    message periodically.
     """
 
-    def __init__(self, label="Ticks", interval=10000):
+    def __init__(self, label="Ticks", print_interval=10):
         self.label = label
-        self.interval = interval
+        self.print_interval = print_interval
         self.total_ticks = 0
         self._reset()
 
     def tick(self, n=1):
         self.ticks += n
         self.total_ticks += n
-        if self.ticks >= self.interval:
+        if self._should_print():
             rate = "{:,}".format(round(self._rate()))
             total_ticks = "{:,}".format(self.total_ticks)
             print(f"{self.label}: {total_ticks} ({rate}/s)", flush=True)
             self._reset()
 
+    def _should_print(self):
+        return time.time() - self.last_print_at >= self.print_interval
+
     def _rate(self):
-        elapsed_time = time.time() - self.start_time
+        elapsed_time = time.time() - self.last_print_at
         if elapsed_time == 0:
             return 0
         return self.ticks / elapsed_time
 
     def _reset(self):
-        self.start_time = time.time()
+        self.last_print_at = time.time()
         self.ticks = 0
 

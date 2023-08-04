@@ -35,14 +35,14 @@ docker-compose logs consumer -f
 ## Chaos
 
 ```
-# Send SIGKILL to a random container every minute
+# Send SIGKILL to a random container every 15 seconds
 ./chaos.sh
 
 # Send SIGTERM to a random MongoDB container every 10 seconds
 ./chaos -s SIGTERM -i 10 mongo1,mongo2,mongo3
 
-# Send SIGKILL to Kafka every 10 seconds
-./chaos -i 10 kafka
+# Send SIGKILL to kafka1 every 5 seconds
+./chaos -i 5 kafka1
 ```
 
 ## Mongo ops
@@ -56,8 +56,8 @@ docker-compose exec mongo1 mongosh
 
 ```
 # List topics
-docker-compose exec kafka kafka-topics --list --bootstrap-server localhost:9092
+docker-compose exec kafka1 kafka-topics --list --bootstrap-server localhost:9092
 
 # Tail topic
-docker-compose exec kafka kafka-console-consumer --topic chaos.events --bootstrap-server localhost:9092
+docker-compose exec kafka1 kafka-console-consumer --topic chaos.events --bootstrap-server localhost:9092
 ```
