@@ -1,22 +1,31 @@
+from datetime import datetime
+
 import pymongo
 
 print("Connecting to MongoDB...", flush=True)
 
 client = pymongo.MongoClient("mongodb://mongo1:27017/?replicaSet=rs&retryWrites=true&w=majority")
-db = client.chaos
+events = client.chaos.events
 
-print("Creating capped events collection...", flush=True)
+print("Creating TTL index...", flush=True)
 
-db.command("create", "events", capped=True, size=512000000, max=100000)
+try:
+    events.create_index([("created_at", pymongo.ASCENDING)], expireAfterSeconds=60)
+except pymongo.errors.OperationFailure:
+    print("Index already exists", flush=True)
 
 print("Generating events...", flush=True)
 
 i = 0
 while True:
     with client.start_session() as session:
-        for _ in range(5):
-            i += 1
-            db.events.insert_one({"i": i}, session=session)
+        with session.start_transaction():
+            requests = []
+            now = datetime.utcnow()
+            for _ in range(5):
+                i += 1
+                requests.append(pymongo.InsertOne({"created_at": now, "i": i}))
+            events.bulk_write(requests, session=session)
 
     if i % 1000 == 0:
         print(f"Inserted {i} events", flush=True)
