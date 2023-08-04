@@ -1,0 +1,169 @@
+version: '3'
+services:
+
+  mongo1:
+    image: mongo:4.4
+    container_name: mongo1
+    command: mongod --port 27017 --replSet rs
+    volumes:
+      - ./scripts:/scripts
+    ports:
+      - 27122:27017
+    networks:
+      - localnet
+    restart: always
+    links:
+      - mongo2
+      - mongo3
+
+  mongo2:
+    image: mongo:4.4
+    container_name: mongo2
+    command: mongod --port 27017 --replSet rs
+    volumes:
+      - ./scripts:/scripts
+    networks:
+      - localnet
+    ports:
+      - 27123:27017
+    restart: always
+
+  mongo3:
+    image: mongo:4.4
+    container_name: mongo3
+    command: mongod --port 27017 --replSet rs
+    volumes:
+      - ./scripts:/scripts
+    networks:
+      - localnet
+    ports:
+      - 27124:27017
+    restart: always
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.2.2
+    hostname: zookeeper
+    container_name: zookeeper
+    networks:
+      - localnet
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.2.2
+    hostname: kafka
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    networks:
+      - localnet
+    environment:
+      CONFLUENT_SUPPORT_CUSTOMER_ID: "anonymous"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://:9092"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_BROKER_ID: 1
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_LISTENERS: "PLAINTEXT://:9092"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+
+  connect:
+    build:
+      context: .
+      dockerfile: Dockerfile.connect
+    ports:
+      - "35000:35000"
+    volumes:
+      - ./scripts:/scripts
+    hostname: connect
+    container_name: connect
+    depends_on:
+      - zookeeper
+      - kafka
+    networks:
+      - localnet
+    environment:
+      KAFKA_JMX_PORT: 35000
+      KAFKA_JMX_HOSTNAME: localhost
+      CONNECT_AUTO_CREATE_TOPICS_ENABLE: "true"
+      CONNECT_BOOTSTRAP_SERVERS: "kafka:9092"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+      CONNECT_CONNECTIONS_MAX_IDLE_MS: 180000
+      CONNECT_EXACTLY_ONCE_SOURCE_SUPPORT: "enabled"
+      CONNECT_GROUP_ID: connect-cluster-group
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_METADATA_MAX_AGE_MS: 180000
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+      CONNECT_REST_ADVERTISED_HOST_NAME: connect
+      CONNECT_REST_PORT: 8083
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_ZOOKEEPER_CONNECT: "zookeeper:2181"
+
+  # rest-proxy:
+  #   image: confluentinc/cp-kafka-rest:7.2.2
+  #   depends_on:
+  #     - zookeeper
+  #     - kafka
+  #     - schema-registry
+  #   hostname: rest-proxy
+  #   container_name: rest-proxy
+  #   networks:
+  #     - localnet
+  #   environment:
+  #     KAFKA_REST_HOST_NAME: rest-proxy
+  #     KAFKA_REST_BOOTSTRAP_SERVERS: "kafka:9092"
+  #     KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
+  #     KAFKA_REST_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+
+  # schema-registry:
+  #   image: confluentinc/cp-schema-registry:7.2.2
+  #   hostname: schema-registry
+  #   container_name: schema-registry
+  #   depends_on:
+  #     - kafka
+  #   networks:
+  #     - localnet
+  #   environment:
+  #     SCHEMA_REGISTRY_HOST_NAME: schema-registry
+  #     SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "PLAINTEXT://kafka:9092"
+  #     SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: "zookeeper:2181"
+  #     SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+
+  generator:
+    image: python:3
+    command: /scripts/generate-events.sh
+    volumes:
+      - ./scripts:/scripts
+    networks:
+      - localnet
+    links:
+      - mongo1
+      - mongo2
+      - mongo3
+    depends_on:
+      - mongo1
+
+  consumer:
+    image: python:3
+    command: /scripts/consume-events.sh
+    volumes:
+      - ./scripts:/scripts
+    networks:
+      - localnet
+    links:
+      - kafka
+    depends_on:
+      - kafka
+    restart: always
+
+networks:
+  localnet:
+    attachable: true
