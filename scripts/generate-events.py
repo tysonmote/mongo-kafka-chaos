@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pymongo
+from pymongo.errors import OperationFailure
 from _lib import RateTracker
 
 def main():
@@ -11,7 +12,7 @@ def main():
     try:
         print("Creating TTL index...", flush=True)
         events.create_index([("created_at", pymongo.ASCENDING)], expireAfterSeconds=120)
-    except pymongo.errors.OperationFailure:
+    except OperationFailure:
         print("Index already exists", flush=True)
 
     rate = RateTracker(label="Events generated", interval=10000)
