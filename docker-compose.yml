@@ -41,7 +41,7 @@ services:
     restart: always
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.2.2
+    image: confluentinc/cp-zookeeper:7.4.1
     hostname: zookeeper
     container_name: zookeeper
     networks:
@@ -51,7 +51,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
 
   kafka:
-    image: confluentinc/cp-kafka:7.2.2
+    image: confluentinc/cp-kafka:7.4.1
     hostname: kafka
     container_name: kafka
     depends_on:
@@ -108,7 +108,7 @@ services:
       CONNECT_ZOOKEEPER_CONNECT: "zookeeper:2181"
 
   # rest-proxy:
-  #   image: confluentinc/cp-kafka-rest:7.2.2
+  #   image: confluentinc/cp-kafka-rest:7.4.1
   #   depends_on:
   #     - zookeeper
   #     - kafka
@@ -124,7 +124,7 @@ services:
   #     KAFKA_REST_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
 
   # schema-registry:
-  #   image: confluentinc/cp-schema-registry:7.2.2
+  #   image: confluentinc/cp-schema-registry:7.4.1
   #   hostname: schema-registry
   #   container_name: schema-registry
   #   depends_on:
@@ -139,7 +139,7 @@ services:
 
   generator:
     image: python:3
-    command: /scripts/generate-events.sh
+    command: bash -c 'sleep 15 && /scripts/generate-events.sh'
     volumes:
       - ./scripts:/scripts
     networks:
@@ -153,7 +153,7 @@ services:
 
   consumer:
     image: python:3
-    command: /scripts/consume-events.sh
+    command: bash -c 'sleep 15 && /scripts/consume-events.sh'
     volumes:
       - ./scripts:/scripts
     networks:

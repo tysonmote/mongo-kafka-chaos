@@ -83,6 +83,7 @@ for msg in consumer:
     if event_i in recent_set:
         print(f"ERROR: Duplicate event {event_i}", flush=True)
     else:
+        recent_set.add(event_i)
         heapq.heappush(recent_heap, event_i)
         if len(recent_heap) > 100000:
             recent_set.remove(heapq.heappop(recent_heap))
