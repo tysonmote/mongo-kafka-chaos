@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 pip install pymongo --disable-pip-version-check
 

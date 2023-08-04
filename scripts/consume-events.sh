@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 pip install kafka-python orjson --disable-pip-version-check
 
