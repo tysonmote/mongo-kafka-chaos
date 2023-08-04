@@ -1,9 +1,10 @@
 # mongodb-kafka-chaos
 
-This repo contains a basic MongoDB -> Kafka pipeline using the
+This repo contains a basic MongoDB to Kafka pipeline using the
 "Confluent-verified" [MongoDB Kafka Connector][connector]. It includes a
-container that generates events with a monotonically-increasing integer and a
-consumer that verifies that events are produced to Kafka exactly once in order.
+container that generates events with a monotonically-increasing integer, a
+consumer that verifies that events are produced to Kafka exactly once and in
+order, as well as a script to cause chaos by randomly killing containers.
 
 [connector]: https://www.mongodb.com/docs/kafka-connector/current/?_ga=2.115834949.290014579.1649258771-1223676955.1643406626&_gac=1.261361151.1647454191.CjwKCAjwlcaRBhBYEiwAK341jSzBbJEryvLIhhyu9ZmZxujVI51zQ5uWrH38fVaOYXkW2Qnhf2zOaBoC9xIQAvD_BwE
 
@@ -16,10 +17,10 @@ test upgrades (or downgrades) by updating the image tag in `docker-compose.yml`.
 Kafka images are pegged to 7.4, which is the "Confluent Platform" version that
 uses Kafka 3.4.0, the latest version of Kafka that AWS MSK supports.
 
-## Setup / reset
+## Running the pipeline
 
 The reset script tears down any running containers and creates a fresh, running
-test pipeline.
+test pipeline:
 
 ```
 ./reset.sh
@@ -29,6 +30,19 @@ You can tail logs for the `consumer` container to watch for errors:
 
 ```
 docker-compose logs consumer -f
+```
+
+## Chaos
+
+```
+# Send SIGKILL to a random container every minute
+./chaos.sh
+
+# Send SIGTERM to a random MongoDB container every 10 seconds
+./chaos -s SIGTERM -i 10 mongo1,mongo2,mongo3
+
+# Send SIGKILL to Kafka every 10 seconds
+./chaos -i 10 kafka
 ```
 
 ## Mongo ops

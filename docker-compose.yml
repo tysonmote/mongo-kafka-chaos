@@ -7,14 +7,9 @@ services:
     command: mongod --port 27017 --replSet rs
     volumes:
       - ./scripts:/scripts
-    ports:
-      - 27122:27017
     networks:
       - localnet
     restart: always
-    links:
-      - mongo2
-      - mongo3
 
   mongo2:
     image: mongo:4.4
@@ -24,8 +19,6 @@ services:
       - ./scripts:/scripts
     networks:
       - localnet
-    ports:
-      - 27123:27017
     restart: always
 
   mongo3:
@@ -36,8 +29,6 @@ services:
       - ./scripts:/scripts
     networks:
       - localnet
-    ports:
-      - 27124:27017
     restart: always
 
   zookeeper:
@@ -73,8 +64,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.connect
-    ports:
-      - "35000:35000"
     volumes:
       - ./scripts:/scripts
     hostname: connect
@@ -144,10 +133,6 @@ services:
       - ./scripts:/scripts
     networks:
       - localnet
-    links:
-      - mongo1
-      - mongo2
-      - mongo3
     depends_on:
       - mongo1
 
@@ -158,8 +143,6 @@ services:
       - ./scripts:/scripts
     networks:
       - localnet
-    links:
-      - kafka
     depends_on:
       - kafka
     restart: always

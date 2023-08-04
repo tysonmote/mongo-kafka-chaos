@@ -38,7 +38,7 @@ def main():
          value_deserializer=lambda b: orjson.loads(b.decode("utf-8"))
      )
 
-    rate = RateTracker(label="Events consumed", interval=10000)
+    rate = RateTracker(label="Events consumed", interval=100000)
 
     seen = IndexSet()
     prev = None
@@ -58,7 +58,7 @@ def main():
         rate.tick()
 
         if event_i == 0 or prev is None:
-            print(f"First event: {event_i}", flush=True)
+            print(f"Got first event, resetting state", flush=True)
             prev = event_i
             index_set = IndexSet()
             index_set.add(event_i)

@@ -1,4 +1,5 @@
 from datetime import datetime
+from time import sleep
 
 import pymongo
 from pymongo.errors import OperationFailure
@@ -6,7 +7,7 @@ from _lib import RateTracker
 
 def main():
     print("Connecting to MongoDB...", flush=True)
-    client = pymongo.MongoClient("mongodb://mongo1:27017/?replicaSet=rs&retryWrites=true&w=majority")
+    client = pymongo.MongoClient("mongodb://mongo1:27017,mongo2:27017,mongo3:27017/?replicaSet=rs&retryWrites=true&w=majority")
     events = client.chaos.events
 
     try:
@@ -15,20 +16,29 @@ def main():
     except OperationFailure:
         print("Index already exists", flush=True)
 
-    rate = RateTracker(label="Events generated", interval=10000)
+    rate = RateTracker(label="Events generated", interval=100000)
     i = 0
 
     print("Generating events...", flush=True)
     while True:
-        with client.start_session() as session:
-            with session.start_transaction():
-                requests = []
-                now = datetime.utcnow()
-                for _ in range(5):
-                    rate.tick()
-                    requests.append(pymongo.InsertOne({"created_at": now, "i": i}))
-                    i += 1
-                events.bulk_write(requests, session=session)
+        n = 5
+        base_i = i
+        try:
+            with client.start_session() as session:
+                with session.start_transaction():
+                    now = datetime.utcnow()
+                    for ii in range(n):
+                        events.insert_one({
+                            "created_at": now,
+                            "i": base_i+ii
+                        }, session=session)
+            rate.tick(n)
+            i = base_i + n
+        except Exception as e:
+            print(f"{e}", flush=True)
+            print("Retrying in 1 second...", flush=True)
+            sleep(1)
+            continue
 
 
 if __name__ == "__main__":

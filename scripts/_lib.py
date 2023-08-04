@@ -17,9 +17,11 @@ class IndexSet:
             return
 
         self.set.add(index)
-        heapq.heappush(self.heap, index)
-        if len(self.heap) > self.max_size:
-            self.set.remove(heapq.heappop(self.heap))
+        if len(self.heap) == self.max_size:
+            rm_index = heapq.heappushpop(self.heap, index)
+            self.set.remove(rm_index)
+        else:
+            heapq.heappush(self.heap, index)
 
     def __contains__(self, item):
         return item in self.set
@@ -34,13 +36,16 @@ class RateTracker:
     def __init__(self, label="Ticks", interval=10000):
         self.label = label
         self.interval = interval
+        self.total_ticks = 0
         self._reset()
 
-    def tick(self):
-        self.ticks += 1
-        if self.ticks % self.interval == 0:
-            rate = round(self._rate())
-            print(f"{self.label}: {self.ticks} ({rate}/s)", flush=True)
+    def tick(self, n=1):
+        self.ticks += n
+        self.total_ticks += n
+        if self.ticks >= self.interval:
+            rate = "{:,}".format(round(self._rate()))
+            total_ticks = "{:,}".format(self.total_ticks)
+            print(f"{self.label}: {total_ticks} ({rate}/s)", flush=True)
             self._reset()
 
     def _rate(self):
