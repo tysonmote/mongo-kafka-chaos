@@ -1,5 +1,4 @@
 import orjson
-import random
 
 from kafka import KafkaConsumer
 from _lib import IndexSet, RateTracker

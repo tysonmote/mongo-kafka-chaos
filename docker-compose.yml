@@ -39,6 +39,7 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    restart: always
 
   kafka1:
     image: confluentinc/cp-kafka:7.4.1
@@ -54,7 +55,9 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_DEFAULT_REPLICATION_FACTOR: 2
       KAFKA_LISTENERS: "PLAINTEXT://:9092"
+      KAFKA_SCHEDULED_REBALANCE_MAX_DELAY_MS: 1000
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+    restart: always
 
   kafka2:
     image: confluentinc/cp-kafka:7.4.1
@@ -70,7 +73,9 @@ services:
       KAFKA_BROKER_ID: 2
       KAFKA_DEFAULT_REPLICATION_FACTOR: 2
       KAFKA_LISTENERS: "PLAINTEXT://:9092"
+      KAFKA_SCHEDULED_REBALANCE_MAX_DELAY_MS: 1000
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+    restart: always
 
   kafka3:
     image: confluentinc/cp-kafka:7.4.1
@@ -86,7 +91,9 @@ services:
       KAFKA_BROKER_ID: 3
       KAFKA_DEFAULT_REPLICATION_FACTOR: 2
       KAFKA_LISTENERS: "PLAINTEXT://:9092"
+      KAFKA_SCHEDULED_REBALANCE_MAX_DELAY_MS: 1000
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+    restart: always
 
   connect:
     build:
@@ -124,6 +131,7 @@ services:
       CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
       CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_ZOOKEEPER_CONNECT: "zookeeper:2181"
+    restart: always
 
   # rest-proxy:
   #   image: confluentinc/cp-kafka-rest:7.4.1
@@ -168,6 +176,7 @@ services:
       - mongo1
       - mongo2
       - mongo3
+    restart: always
 
   consumer:
     image: python:3
