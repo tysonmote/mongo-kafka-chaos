@@ -33,7 +33,7 @@ class RateTracker:
     message periodically.
     """
 
-    def __init__(self, label="Ticks", print_interval=10):
+    def __init__(self, label="Ticks", print_interval=5):
         self.label = label
         self.print_interval = print_interval
         self.total_ticks = 0

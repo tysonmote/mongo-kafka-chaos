@@ -21,7 +21,7 @@ def main():
 
     print("Generating events...", flush=True)
     while True:
-        n = 25
+        n = 10
         base_i = i
         try:
             with client.start_session() as session:
