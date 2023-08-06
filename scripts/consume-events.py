@@ -10,6 +10,11 @@ def parse_index(msg):
     change stream record.
     """
 
+    try:
+        msg = orjson.loads(msg.decode("utf-8"))
+    except Exception as e:
+        raise Exception(f"Failed to parse message as JSON: {e}")
+
     payload = orjson.loads(msg.get("payload"))
     if payload is None:
         raise Exception(f"Payload is missing: {msg}")
@@ -34,7 +39,6 @@ def main():
          bootstrap_servers=["kafka1:9092", "kafka2:9092", "kafka3:9092"],
          group_id="consumer-0",
          auto_commit_interval_ms=1000,
-         value_deserializer=lambda b: orjson.loads(b.decode("utf-8"))
      )
 
     rate = RateTracker(label="Events consumed")
@@ -45,6 +49,13 @@ def main():
     print("Consuming events...", flush=True)
 
     for msg in consumer:
+        # Skip if first byte of body is null. I have no idea where these
+        # messages are coming from; they started appearing only after upgrading
+        # Kafka Connect 3.3.x (and 3.4.x). 3.2.x does not produce these
+        # messages.
+        if msg.value[0] == 0:
+            continue
+
         try:
             event_i = parse_index(msg.value)
         except Exception as e:
