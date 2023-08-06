@@ -21,17 +21,19 @@ def main():
 
     print("Generating events...", flush=True)
     while True:
-        n = 5
+        n = 25
         base_i = i
         try:
             with client.start_session() as session:
                 with session.start_transaction():
                     now = datetime.utcnow()
+                    records = []
                     for ii in range(n):
-                        events.insert_one({
+                        records.append(pymongo.InsertOne({
                             "created_at": now,
                             "i": base_i+ii
-                        }, session=session)
+                        }))
+                    events.bulk_write(records, session=session)
             rate.tick(n)
             i = base_i + n
         except Exception as e:
