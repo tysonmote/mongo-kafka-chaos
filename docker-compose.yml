@@ -5,7 +5,7 @@ services:
     build:
       dockerfile: Dockerfile.mongo
     container_name: mongo1
-    command: mongod --port 27017 --replSet rs
+    command: --port 27017 --replSet rs --oplogSize 4096
     volumes:
       - ./scripts:/scripts
     networks:
@@ -16,7 +16,7 @@ services:
     build:
       dockerfile: Dockerfile.mongo
     container_name: mongo2
-    command: mongod --port 27017 --replSet rs
+    command: --port 27017 --replSet rs --oplogSize 4096
     volumes:
       - ./scripts:/scripts
     networks:
@@ -27,7 +27,7 @@ services:
     build:
       dockerfile: Dockerfile.mongo
     container_name: mongo3
-    command: mongod --port 27017 --replSet rs
+    command: --port 27017 --replSet rs --oplogSize 4096
     volumes:
       - ./scripts:/scripts
     networks:
@@ -100,9 +100,6 @@ services:
 
   connect:
     image: confluentinc/cp-kafka-connect:7.4.1
-    build:
-      context: .
-      dockerfile: Dockerfile.connect
     volumes:
       - ./scripts:/scripts
       - ./connectors:/usr/share/confluent-hub-components

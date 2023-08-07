@@ -1,3 +1,3 @@
 FROM python:3
 
-RUN pip install pymongo kafka-python orjson --disable-pip-version-check
+RUN pip install pymongo aiokafka orjson --disable-pip-version-check
